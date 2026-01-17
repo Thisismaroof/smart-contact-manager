@@ -7,7 +7,7 @@
 </head>
 <body>
 	<section>
-	<div class="card mr-3 ml-3">
+		<div class="card mr-3 ml-3">
 			<div class="card-body">
 				<h1 class="text-center">Update Your Contact</h1>
 
@@ -18,8 +18,8 @@
 							<form action="#" th:object="${contact}"
 								enctype="multipart/form-data" method="POST"
 								th:action="@{/user/process-update}" class="mt-2">
-								
-								
+
+
 								<input type="hidden" th:value="${contact.cId}" name="cId" />
 
 
@@ -35,8 +35,9 @@
 										</div>
 									</div>
 
-									<input th:value="${contact.name}"  required type="text" id="firstName" name="name"
-										placeholder="Enter Your Name here" class="form-control" />
+									<input th:value="${contact.name}" required type="text"
+										id="firstName" name="name" placeholder="Enter Your Name here"
+										class="form-control" />
 
 								</div>
 
@@ -52,7 +53,8 @@
 										</div>
 									</div>
 
-									<input th:value="${contact.secondName}" required type="text" id="secondName" name="secondName"
+									<input th:value="${contact.secondName}" required type="text"
+										id="secondName" name="secondName"
 										placeholder="Enter Your Last Name here" class="form-control" />
 								</div>
 
@@ -67,7 +69,8 @@
 										</div>
 									</div>
 
-									<input th:value="${contact.phone}" required min="10" type="number" id="phone" name="phone"
+									<input th:value="${contact.phone}" required min="10"
+										type="number" id="phone" name="phone"
 										placeholder="Enter Your Phone Number here"
 										class="form-control" />
 								</div>
@@ -80,8 +83,9 @@
 										<div class="input-group-text">@</div>
 									</div>
 
-									<input th:value="${contact.email}" required type="email" id="email" name="email"
-										placeholder="Enter Your Email ID here" class="form-control" />
+									<input th:value="${contact.email}" required type="email"
+										id="email" name="email" placeholder="Enter Your Email ID here"
+										class="form-control" />
 								</div>
 
 								<!-- Work -->
@@ -95,7 +99,8 @@
 										</div>
 									</div>
 
-									<input th:value="${contact.work}" required type="text" id="work" name="work"
+									<input th:value="${contact.work}" required type="text"
+										id="work" name="work"
 										placeholder="Enter Your Work details here"
 										class="form-control" />
 								</div>
@@ -103,8 +108,8 @@
 								<!-- Description -->
 								<div class="form-group mt-3">
 
-									<textarea th:text="${contact.description}" name="description" id="mytextarea"
-										class="form-control" rows="10"
+									<textarea th:text="${contact.description}" name="description"
+										id="mytextarea" class="form-control" rows="10"
 										placeholder="Enter You Contact Description "></textarea>
 								</div>
 
@@ -112,17 +117,20 @@
 								<div class="container text-center">
 									<img style="width: 250px; height: 250px;"
 										class="img-fluid my_profile_picture"
-										th:src="@{'/img/'+${contact.image}}" alt="" />
+										th:src="${contact.image == 'contact.png'} 
+              ? @{/img/contact.png} 
+              : @{/uploads/{img}(img=${contact.image})}"
+										alt="profile photo" />
 								</div>
-								
-								
+
+
 								<p class="">Choose New Profile Pic</p>
 
 
 
 								<!-- Image -->
 								<div class="custom-file mt-3">
-									<input type="file" name="profileImage"/>
+									<input type="file" name="profileImage" />
 
 								</div>
 

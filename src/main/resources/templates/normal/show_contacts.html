@@ -38,9 +38,11 @@
 
 								<th scope="row" th:text="'SCM2025'+${c.cId}">1</th>
 
-								<td><img src="" class="my_profile_picture"
-									th:src="@{'/img/'+${c.image}}" alt="profile photo" /> <span
-									th:text="${c.name}"></span></td>
+								<td><img class="my_profile_picture"
+									th:src="${c.image == 'contact.png'}
+              ? @{/img/contact.png}
+              : @{/uploads/{img}(img=${c.image})}"
+									alt="profile photo" /> <span th:text="${c.name}"></span></td>
 
 								<td><a href="#" th:href="@{'/user/'+${c.cId}+'/contact'}">
 										<span th:text="${c.email}"></span>
@@ -84,15 +86,15 @@
 
 			</div>
 		</div>
-		
-				<script>
+
+		<script>
 		$(document).ready(()=>{
 		$(".item").removeClass("active");
 		$("#contacts-link").addClass("active");
 		});
 
 		</script>
-		
+
 	</section>
 </body>
 </html>

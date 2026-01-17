@@ -8,9 +8,10 @@ import java.nio.file.StandardCopyOption;
 import java.security.Principal;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -41,6 +42,9 @@ import jakarta.servlet.http.HttpSession;
 @Controller
 @RequestMapping("/user")
 public class UserController {
+	
+	@Value("${file.upload-dir}")
+	private String uploadDir;
 
 	private final DaoAuthenticationProvider authenticationProvider;
 
@@ -83,41 +87,54 @@ public class UserController {
 
 	// Processing Add Contact Form
 	@PostMapping("/process-contact")
-	public String processContact(@ModelAttribute Contact contact, @RequestParam("profileImage") MultipartFile file,
-			Principal principal, RedirectAttributes redirectAttributes) {
+	public String processContact(
+	        @ModelAttribute Contact contact,
+	        @RequestParam("profileImage") MultipartFile file,
+	        Principal principal,
+	        RedirectAttributes redirectAttributes) {
 
-		try {
-			String name = principal.getName();
-			User user = this.userRepository.getUserByUserName(name);
+	    try {
+	        String name = principal.getName();
+	        User user = this.userRepository.getUserByUserName(name);
 
-			// File upload
-			if (file.isEmpty()) {
-				System.out.println("File Is Empty");
-				contact.setImage("contact.png");
+	        if (file.isEmpty()) {
+	            contact.setImage("contact.png");
+	        } else {
+	            // External upload directory
+	            Path uploadPath = Paths.get(uploadDir);
 
-			} else {
-				contact.setImage(file.getOriginalFilename());
-				File savefile = new ClassPathResource("static/img").getFile();
-				Path path = Paths.get(savefile.getAbsolutePath() + File.separator + file.getOriginalFilename());
-				Files.copy(file.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
-			}
+	            if (!Files.exists(uploadPath)) {
+	                Files.createDirectories(uploadPath);
+	            }
 
-			contact.setUser(user);
-			user.getContacts().add(contact);
+	            String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
+	            Path filePath = uploadPath.resolve(fileName);
 
-			this.userRepository.save(user);
+	            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
-			redirectAttributes.addFlashAttribute("message",
-					new Message("Your Contact is Added Successfully!!!", "success"));
+	            contact.setImage(fileName);
+	        }
 
-		} catch (Exception e) {
-			e.printStackTrace();
-			redirectAttributes.addFlashAttribute("message", new Message("Something went wrong! Try again.", "danger"));
-		}
+	        contact.setUser(user);
+	        user.getContacts().add(contact);
+	        this.userRepository.save(user);
 
-		return "redirect:/user/add-contact";
+	        redirectAttributes.addFlashAttribute(
+	                "message",
+	                new Message("Your Contact is Added Successfully!!!", "success")
+	        );
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        redirectAttributes.addFlashAttribute(
+	                "message",
+	                new Message("Something went wrong! Try again.", "danger")
+	        );
+	    }
+
+	    return "redirect:/user/add-contact";
 	}
-
+	
 	// show contact handler
 	@GetMapping("/show_contacts/{page}")
 	public String showContacts(@PathVariable("page") Integer page, Model m, Principal principal) {
@@ -155,19 +172,33 @@ public class UserController {
 	}
 
 	@GetMapping("/delete/{cId}")
-	public String deleteContact(@PathVariable("cId") Integer cid, Principal principal,
-			RedirectAttributes redirectAttributes) {
+	public String deleteContact(@PathVariable("cId") Integer cid,
+	                            Principal principal,
+	                            RedirectAttributes redirectAttributes) {
 
-		Contact contact = this.contactRepository.findById(cid).get();
+	    Contact contact = this.contactRepository.findById(cid).get();
 
-		User user = this.userRepository.getUserByUserName(principal.getName());
-		user.getContacts().remove(contact);
-		this.userRepository.save(user);
+	    if (contact.getImage() != null &&
+	        !contact.getImage().equals("contact.png")) {
 
-		redirectAttributes.addFlashAttribute("message", new Message("Contact Deleted Successfully....", "success"));
+	        Path imagePath = Paths.get(uploadDir).resolve(contact.getImage());
+	        try {
+	            Files.deleteIfExists(imagePath);
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	        }
+	    }
 
-		return "redirect:/user/show_contacts/0";
+	    User user = this.userRepository.getUserByUserName(principal.getName());
+	    user.getContacts().remove(contact);
+	    this.userRepository.save(user);
 
+	    redirectAttributes.addFlashAttribute(
+	            "message",
+	            new Message("Contact Deleted Successfully....", "success")
+	    );
+
+	    return "redirect:/user/show_contacts/0";
 	}
 
 	// open update form handler
@@ -182,38 +213,68 @@ public class UserController {
 
 	// update contact handler
 	@RequestMapping(value = "/process-update", method = RequestMethod.POST)
-	public String updateHander(@ModelAttribute Contact contact, @RequestParam("profileImage") MultipartFile file,
-			Model m, HttpSession httpSession, Principal principal) {
+	public String updateHander(
+	        @ModelAttribute Contact contact,
+	        @RequestParam("profileImage") MultipartFile file,
+	        Model m,
+	        HttpSession httpSession,
+	        Principal principal) {
 
-		try {
-			Contact oldcontactDetail = this.contactRepository.findById(contact.getCId()).get();
-			if (!file.isEmpty()) {
-				// delete old photo
-				// update new photo
+	    try {
+	        Contact oldContact = this.contactRepository
+	                .findById(contact.getCId())
+	                .orElseThrow();
 
-				// Delete Photo
-				File deletefile = new ClassPathResource("static/img").getFile();
-				File file1 = new File(deletefile, oldcontactDetail.getImage());
-				file1.delete();
+	        // If new image uploaded
+	        if (!file.isEmpty()) {
 
-				// Update Photo
-				File savefile = new ClassPathResource("static/img").getFile();
-				Path path = Paths.get(savefile.getAbsolutePath() + File.separator + file.getOriginalFilename());
-				Files.copy(file.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
-				contact.setImage(file.getOriginalFilename());
-			} else {
-				contact.setImage(oldcontactDetail.getImage());
-			}
+	            //  Delete old image (if not default)
+	            if (oldContact.getImage() != null &&
+	                !oldContact.getImage().equals("contact.png")) {
 
-			User user = this.userRepository.getUserByUserName(principal.getName());
-			contact.setUser(user);
-			this.contactRepository.save(contact);
-			httpSession.setAttribute("message", new Message("Your Contact is Updated....", "success"));
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+	                Path oldImagePath =
+	                        Paths.get(uploadDir).resolve(oldContact.getImage());
 
-		return "redirect:/user/" + contact.getCId() + "/contact";
+	                Files.deleteIfExists(oldImagePath);
+	            }
+
+	            //  Save new image
+	            Path uploadPath = Paths.get(uploadDir);
+	            Files.createDirectories(uploadPath);
+
+	            String newFileName =
+	                    UUID.randomUUID() + "_" + file.getOriginalFilename();
+
+	            Path newFilePath = uploadPath.resolve(newFileName);
+	            Files.copy(file.getInputStream(), newFilePath,
+	                    StandardCopyOption.REPLACE_EXISTING);
+
+	            contact.setImage(newFileName);
+
+	        } else {
+	            // No new file → keep old image
+	            contact.setImage(oldContact.getImage());
+	        }
+
+	        User user = this.userRepository.getUserByUserName(principal.getName());
+	        contact.setUser(user);
+
+	        this.contactRepository.save(contact);
+
+	        httpSession.setAttribute(
+	                "message",
+	                new Message("Your Contact is Updated....", "success")
+	        );
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        httpSession.setAttribute(
+	                "message",
+	                new Message("Update failed!", "danger")
+	        );
+	    }
+
+	    return "redirect:/user/" + contact.getCId() + "/contact";
 	}
 
 	// Your Profile Setting
