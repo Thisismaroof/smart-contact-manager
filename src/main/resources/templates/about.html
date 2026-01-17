@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	th:replace="base::layout(~{::section})">
+
+<section class="about-section">
+
+	<div class="container">
+
+		<!-- HERO -->
+		<div class="about-hero">
+			<div class="hero-text">
+				<h1>Smart Contact Manager</h1>
+				<p>A secure and efficient platform to manage your contacts with
+					modern authentication and cloud-ready architecture.</p>
+			</div>
+
+		</div>
+
+		<!-- FEATURES -->
+		<div class="about-features">
+			<h2>Why Smart Contact Manager?</h2>
+
+			<div class="feature-grid">
+
+				<div class="feature-card">
+					<i class="fas fa-lock"></i>
+					<h4>Secure Authentication</h4>
+					<p>Role-based login system with Spring Security and BCrypt
+						encryption.</p>
+				</div>
+
+				<div class="feature-card">
+					<i class="fas fa-envelope"></i>
+					<h4>Email OTP Recovery</h4>
+					<p>Forgot password system with secure OTP verification via
+						email.</p>
+				</div>
+
+				<div class="feature-card">
+					<i class="fas fa-database"></i>
+					<h4>Reliable Storage</h4>
+					<p>Contacts stored safely using MySQL with JPA & Hibernate.</p>
+				</div>
+
+				<div class="feature-card">
+					<i class="fas fa-bolt"></i>
+					<h4>Fast & Scalable</h4>
+					<p>Built using Spring Boot for high performance and
+						scalability.</p>
+				</div>
+
+			</div>
+		</div>
+
+		<!-- TECH STACK -->
+		<div class="tech-stack">
+			<h2>Technology Stack</h2>
+
+			<div class="stack-list">
+				<span>Java</span> <span>Spring Boot</span> <span>Spring
+					Security</span> <span>Thymeleaf</span> <span>MySQL</span> <span>Hibernate</span>
+			</div>
+		</div>
+
+		<!-- FOOTER -->
+		<div class="about-footer">
+			<p>
+				Developed By Maroof Khan using Java & Spring Boot <br> © 2026 Smart
+				Contact Manager
+			</p>
+		</div>
+
+	</div>
+
+</section>
+
+</html>
