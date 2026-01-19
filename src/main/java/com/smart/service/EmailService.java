@@ -33,6 +33,8 @@ public class EmailService {
             request.setBody(mail.build());
 
             Response response = sg.api(request);
+            System.out.println("SENDGRID KEY PRESENT: " + (apiKey != null));
+            System.out.println("FROM EMAIL: " + fromEmail);
 
             return response.getStatusCode() >= 200 && response.getStatusCode() < 300;
 
