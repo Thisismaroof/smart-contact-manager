@@ -1,41 +1,42 @@
 package com.smart.service;
 
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
+import com.sendgrid.*;
+import com.sendgrid.helpers.mail.Mail;
+import com.sendgrid.helpers.mail.objects.Content;
+import com.sendgrid.helpers.mail.objects.Email;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
 public class EmailService {
 
-    @Autowired
-    private JavaMailSender mailSender;
+    @Value("${SENDGRID_API_KEY}")
+    private String apiKey;
+
+    @Value("${MAIL_FROM}")
+    private String fromEmail;
 
     public boolean sendEmail(String subject, String message, String to) {
 
         try {
-            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            Email from = new Email(fromEmail);
+            Email toEmail = new Email(to);
+            Content content = new Content("text/html", message);
+            Mail mail = new Mail(from, subject, toEmail, content);
 
-            MimeMessageHelper helper =
-                    new MimeMessageHelper(mimeMessage, true, "UTF-8");
+            SendGrid sg = new SendGrid(apiKey);
+            Request request = new Request();
 
-            helper.setFrom("khanmaroof863@gmail.com");
-            helper.setTo(to);
-            helper.setSubject(subject);
-            
+            request.setMethod(Method.POST);
+            request.setEndpoint("mail/send");
+            request.setBody(mail.build());
 
-            // true = HTML
-            helper.setText(message, true);
+            Response response = sg.api(request);
 
-            mailSender.send(mimeMessage);
+            return response.getStatusCode() >= 200 && response.getStatusCode() < 300;
 
-            System.out.println("Email sent successfully");
-            return true;
-
-        } catch (MessagingException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
