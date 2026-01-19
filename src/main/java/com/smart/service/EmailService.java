@@ -11,11 +11,11 @@ import org.springframework.stereotype.Service;
 @Service
 public class EmailService {
 
-    @Value("${SENDGRID_API_KEY}")
-    private String apiKey;
+	@Value("${sendgrid.api.key}")
+	private String apiKey;
 
-    @Value("${MAIL_FROM}")
-    private String fromEmail;
+	@Value("${sendgrid.mail.from}")
+	private String fromEmail;
 
     public boolean sendEmail(String subject, String message, String to) {
 
