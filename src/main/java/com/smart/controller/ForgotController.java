@@ -17,14 +17,10 @@ import com.smart.entities.User;
 import com.smart.helper.Message;
 import com.smart.service.EmailService;
 
-import jakarta.servlet.http.HttpSession;
 
 @Controller
 public class ForgotController {
 	Random random = new Random();
-	
-	@Autowired
-	private BCryptPasswordEncoder bCryptPasswordEncoder;
 
 	@Autowired
 	private EmailService emailService;
@@ -90,7 +86,7 @@ public class ForgotController {
 
 	    User user = userRepository.getUserByUserName(email);
 
-	    user.setPassword(bCryptPasswordEncoder.encode(newPassword));
+	    user.setPassword(passwordEncoder.encode(newPassword));
 
 	    // clear OTP
 	    user.setOtp(null);
