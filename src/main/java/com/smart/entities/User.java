@@ -1,5 +1,6 @@
 package com.smart.entities;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,6 +45,26 @@ public class User {
 	
 	@Column(length = 500)
 	private String about;
+	
+	public Integer getOtp() {
+		return otp;
+	}
+
+	public void setOtp(Integer otp) {
+		this.otp = otp;
+	}
+
+	public LocalDateTime getOtpExpiry() {
+		return otpExpiry;
+	}
+
+	public void setOtpExpiry(LocalDateTime otpExpiry) {
+		this.otpExpiry = otpExpiry;
+	}
+
+	private Integer otp;
+
+	private LocalDateTime otpExpiry;
 	
 	@Override
 	public String toString() {
